@@ -126,6 +126,7 @@ MAX_PLOT_VALUES = 50
 # Bar Chart: Amount by user-selected category
 selected_category_bar = st.selectbox("Select a category for the bar chart", categories)
 amount_by_category_bar = filtered_df.groupby(selected_category_bar)['Contribution'].sum().reset_index().sort_values(by='Contribution', ascending=False)
+amount_by_category_bar['Contribution $'] = amount_by_category_bar['Contribution'].apply(lambda x: f"${x:,.2f}")
 
 # If number of unique values is greater than MAX_PLOT_VALUES, show only top N
 if len(amount_by_category_bar) > MAX_PLOT_VALUES:
@@ -133,7 +134,8 @@ if len(amount_by_category_bar) > MAX_PLOT_VALUES:
 
 bar_chart = alt.Chart(amount_by_category_bar).mark_bar().encode(
     y=alt.Y(f"{selected_category_bar}:O", sort='-x', title=selected_category_bar),
-    x=alt.X('Contribution:Q', title='Contribution')
+    x=alt.X('Contribution:Q', title='Contribution'),
+    tooltip=[selected_category_bar, 'Contribution $']
 )
 st.altair_chart(bar_chart, use_container_width=True)
 
@@ -143,18 +145,21 @@ selected_category_line = st.selectbox("Select a category for the line chart", ca
 
 aggregation_choice = st.radio("Choose aggregation for line chart:", ['Date', 'Year'])
 if aggregation_choice == 'Date':
-    amount_by_category_line = filtered_df.groupby([selected_category_line, 'Timestamp', 'Date'])['Contribution'].sum().reset_index()
+    amount_by_category_line = filtered_df.groupby([selected_category_line, 'Timestamp', 'Date',])['Contribution'].sum().reset_index()
+    amount_by_category_line['Contribution $'] = amount_by_category_line['Contribution'].apply(lambda x: f"${x:,.2f}")
     x_encoding = alt.X('Timestamp:T', title='Date')
-    tooltip_fields = [selected_category_line, 'Date:N', 'Contribution']
+    tooltip_fields = [selected_category_line, 'Date:N', 'Contribution $']
 else:
     amount_by_category_line = filtered_df.groupby([selected_category_line, 'Year'])['Contribution'].sum().reset_index()
+    amount_by_category_line['Contribution $'] = amount_by_category_line['Contribution'].apply(lambda x: f"${x:,.2f}")
     x_encoding = alt.X('Year:O', title='Year')
-    tooltip_fields = [selected_category_line, 'Year', 'Contribution']
+    tooltip_fields = [selected_category_line, 'Year', 'Contribution $']
     
     
 # If number of unique values is greater than MAX_PLOT_VALUES, show only top N
 top_categories = amount_by_category_line.groupby(selected_category_line)['Contribution'].sum().nlargest(MAX_PLOT_VALUES).index
 amount_by_category_line = amount_by_category_line[amount_by_category_line[selected_category_line].isin(top_categories)]
+amount_by_category_line['Contribution $'] = amount_by_category_line['Contribution'].apply(lambda x: f"${x:,.2f}")
 
 base_chart = alt.Chart(amount_by_category_line).encode(
     x=x_encoding,
