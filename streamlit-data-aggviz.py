@@ -7,7 +7,7 @@ import altair as alt
 st.set_page_config(layout="wide")
 
 st.title("Sacramento Campaign Finance 2014 - 2023")
-st.write("This application is designed to empower public investigation into Sacramento campaign finance data from 2014 to 2023. You can filter the data using the various parameters on the left, for example by campaign of committee, by the last name listed for the contribution (which can include individuals, businesses, and orgs), or by specific years or even dates, and you may type text directly into the filter bars on the left as you would a search bar. Then, explore and visualize the filtered data in the bar and line charts below, selecting a category to aggregate the filtered data on. Below the charts is the output of the full filtered (or unfiltered) dataset, which you may download as a CSV file.")
+st.write("This application is designed to empower public investigation into Sacramento campaign finance data. Filter the data using the various parameters on the left, for example by campaign or committee, by the last name listed for contributions (which includes individuals, businesses, and orgs), or by year or date. Then, explore and visualize the filtered data in the bar and line charts below, selecting a category to aggregate the filtered data on. Below the charts is the output of the full filtered (or unfiltered) dataset, which you may download as a CSV file.")
 
 folder_path = 'data/'
 
