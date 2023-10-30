@@ -7,6 +7,7 @@ import altair as alt
 st.set_page_config(layout="wide")
 
 st.title("Sacramento Campaign Finance 2014 - 2023")
+st.write("This application visualizes the campaign finance data of Sacramento from 2014 to 2023. You can filter the data using various parameters and view the aggregate statistics.")
 
 folder_path = 'data/'
 
@@ -87,8 +88,11 @@ def get_filtered_values(column, active_filters):
             df = df[df[key] == (int(value) if key == 'year' else value)]
     return ['All'] + sorted(list(map(str, df[column].unique())))
 
+st.sidebar.write("Use the filters below to narrow down the dataset and explore specific contributions.")
+
 for column in filters.keys():
     filters[column] = st.sidebar.selectbox(f"Select {column}", options=get_filtered_values(column, filters))
+
 
 filtered_df = original_df.copy()
 
@@ -137,6 +141,8 @@ bar_chart = alt.Chart(amount_by_category_bar).mark_bar().encode(
     x=alt.X('Contribution:Q', title='Contribution'),
     tooltip=[selected_category_bar, 'Contribution Amount']
 )
+st.markdown("## Bar Chart Visualization")
+st.write("The bar chart below represents the total contributions based on the selected category. By default, if there are more than 50 unique values in a category, only the top 50 based on the contribution amounts are displayed.")
 st.altair_chart(bar_chart, use_container_width=True)
 
 
@@ -171,6 +177,10 @@ base_chart = alt.Chart(amount_by_category_line).encode(
 )
 
 line_chart = (base_chart.mark_line() + base_chart.mark_point(size=100, filled=True, opacity=.5)).interactive()
+st.markdown("## Line Chart Visualization")
+st.write("The line chart below visualizes the aggregated amount of contributions over time (by date or year) for a selected category. Like the bar chart, if there are more than 50 unique values in a category, only the top 50 based on the contribution amounts are displayed in the graph.")
 st.altair_chart(line_chart, use_container_width=True)
 
+st.markdown("## Filtered Data")
+st.write("The table below shows the data after applying the selected filters. You can further inspect specific rows to understand the details of each contribution.")
 st.write(filtered_df)
