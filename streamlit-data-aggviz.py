@@ -7,7 +7,7 @@ import altair as alt
 st.set_page_config(layout="wide")
 
 st.title("Sacramento Campaign Finance 2014 - 2023")
-st.write("This application analyzes Sacramento campaign finance data from 2014 to 2023. You can filter the data using various parameters on the left, explore and visualize the aggregate data in the bar and line charts below, and download the filtered dataset at the bottom of the page.")
+st.write("This application is designed to empower public investigation into Sacramento campaign finance data from 2014 to 2023. You can filter the data using the various parameters on the left, for example by campaign of committee, by the last name listed for the contribution (which can include individuals, businesses, and orgs), or by specific years or even dates, and you may type text directly into the filter bars on the left as you would a search bar. Then, explore and visualize the filtered data in the bar and line charts below, selecting a category to aggregate the filtered data on. Below the charts is the output of the full filtered (or unfiltered) dataset, which you may download as a CSV file.")
 
 folder_path = 'data/'
 
@@ -112,17 +112,17 @@ categories = [
     'Entity',
     'Campaign/PAC',
     'Campaigns/PACs-all years',
-    'Contribution',
-    'Year',
-    'Date',
     'Contributor Last Name',
     'Contributor First Name',
     'Contributor Type',
+    'Committee Type',
+    'Year',
+    'Date',
     'Contributor City',
     'Contributor Zip',
+    'Contribution',
     'Contributor Occupation',
     'Contributor Employer',
-    'Committee Type',
     'Transaction ID #'
 ]
 # Define a maximum limit for unique values to plot
