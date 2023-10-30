@@ -148,12 +148,12 @@ if aggregation_choice == 'Date':
     amount_by_category_line = filtered_df.groupby([selected_category_line, 'Timestamp', 'Date',])['Contribution'].sum().reset_index()
     amount_by_category_line['Contribution Amount'] = amount_by_category_line['Contribution'].apply(lambda x: f"${x:,.2f}")
     x_encoding = alt.X('Timestamp:T', title='Date')
-    tooltip_fields = [selected_category_line, 'Date:N', 'Contribution $']
+    tooltip_fields = [selected_category_line, 'Date:N', 'Contribution Amount']
 else:
     amount_by_category_line = filtered_df.groupby([selected_category_line, 'Year'])['Contribution'].sum().reset_index()
     amount_by_category_line['Contribution Amount'] = amount_by_category_line['Contribution'].apply(lambda x: f"${x:,.2f}")
     x_encoding = alt.X('Year:O', title='Year')
-    tooltip_fields = [selected_category_line, 'Year', 'Contribution $']
+    tooltip_fields = [selected_category_line, 'Year', 'Contribution Amount']
     
     
 # If number of unique values is greater than MAX_PLOT_VALUES, show only top N
