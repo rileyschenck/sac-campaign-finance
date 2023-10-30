@@ -10,6 +10,7 @@ st.title("Sacramento Campaign Finance 2014 - 2023")
 
 folder_path = 'data/'
 
+st.cache_data
 def read_jsons_from_folder(folder_path):
     all_files = [f for f in os.listdir(folder_path) if f.endswith('.json')]
     df_list = []
@@ -20,46 +21,45 @@ def read_jsons_from_folder(folder_path):
         df_list.append(df)
     
     combined_df = pd.concat(df_list, ignore_index=True)
-    return combined_df
 
-combined_df = read_jsons_from_folder(folder_path)
-
-combined_df['Campaigns-allYears'] = combined_df['filerName'].str[:-5] \
-    .where(combined_df['filerName'].str[-4:].str.isnumeric(), combined_df['filerName'])
-combined_df['agencyName'] = combined_df['agencyName'].replace("City Council", "Sacramento City")
-combined_df['agencyName'] = combined_df['agencyName'].replace("Board of Supervisors", "Sacramento County")
-combined_df['year'] = combined_df['year'].astype(str)
+    combined_df['Campaigns-allYears'] = combined_df['filerName'].str[:-5] \
+        .where(combined_df['filerName'].str[-4:].str.isnumeric(), combined_df['filerName'])
+    combined_df['agencyName'] = combined_df['agencyName'].replace("City Council", "Sacramento City")
+    combined_df['agencyName'] = combined_df['agencyName'].replace("Board of Supervisors", "Sacramento County")
+    combined_df['year'] = combined_df['year'].astype(str)
 
 
-combined_df['amount'] = combined_df['amount'].astype(int)
-combined_df['date'] = pd.to_datetime(combined_df['date'])
-combined_df['date'] = combined_df['date'].dt.strftime('%B %d, %Y')  # 1. Add a column for the string representation of the date
+    combined_df['amount'] = combined_df['amount'].astype(int)
+    combined_df['date'] = pd.to_datetime(combined_df['date'])
+    combined_df['datestring'] = combined_df['date'].dt.strftime('%B %d, %Y')  # 1. Add a column for the string representation of the date
 
-original_df = combined_df[['agencyName', 'filerName', 'Campaigns-allYears', 'amount', 'year', 'date', 'contributorLastName', 'contributorFirstName', 'contributorType', 'contributorCity', 'contributorZip', 'contributorOccupation', 'contributorEmployer','committeeType','transactionId']]
+    original_df = combined_df[['agencyName', 'filerName', 'Campaigns-allYears', 'amount', 'year',  'contributorLastName', 'contributorFirstName', 'contributorType','date','datestring', 'contributorCity', 'contributorZip', 'contributorOccupation', 'contributorEmployer','committeeType','transactionId']]
 
-column_mapping = {
-    'agencyName':'Entity',
-    'filerName':'Campaign/PAC',
-    'Campaigns-allYears':'Campaigns/PACs-all years',
-    'amount':'Contribution',
-    'year':'Year',
-    'date':'Date',
-    'contributorLastName':'Contributor Last Name',
-    'contributorFirstName':'Contributor First Name',
-    'contributorType': 'Contributor Type',
-    'contributorCity':'Contributor City',
-    'contributorZip':'Contributor Zip',
-    'contributorOccupation':'Contributor Occupation',
-    'contributorEmployer':'Contributor Employer',
-    'committeeType':'Committee Type',
-    'transactionId':'Transaction ID #'
-}
+    column_mapping = {
+        'agencyName':'Entity',
+        'filerName':'Campaign/PAC',
+        'Campaigns-allYears':'Campaigns/PACs-all years',
+        'amount':'Contribution',
+        'year':'Year',
+        'date':'Timestamp',
+        'datestring':'Date',
+        'contributorLastName':'Contributor Last Name',
+        'contributorFirstName':'Contributor First Name',
+        'contributorType': 'Contributor Type',
+        'contributorCity':'Contributor City',
+        'contributorZip':'Contributor Zip',
+        'contributorOccupation':'Contributor Occupation',
+        'contributorEmployer':'Contributor Employer',
+        'committeeType':'Committee Type',
+        'transactionId':'Transaction ID #'
+    }
 
-original_df.rename(columns=column_mapping, inplace=True)
+    original_df.rename(columns=column_mapping, inplace=True)
+    
+    return original_df
 
-# original_df['Contribution'] = original_df['Contribution'].astype(int)
-# original_df['Date'] = pd.to_datetime(original_df['Date'])
-# original_df['DateString'] = original_df['Date'].dt.strftime('%B %d, %Y')  # 1. Add a column for the string representation of the date
+
+original_df = read_jsons_from_folder(folder_path)
 
 
 filters = {
@@ -142,15 +142,12 @@ st.altair_chart(bar_chart, use_container_width=True)
 selected_category_line = st.selectbox("Select a category for the line chart", categories)
 
 aggregation_choice = st.radio("Choose aggregation for line chart:", ['Date', 'Year'])
-
 if aggregation_choice == 'Date':
-    date_df=filtered_df.copy()
-    amount_by_category_line = date_df.groupby([selected_category_line, 'Date'])['Contribution'].sum().reset_index()
-    x_encoding = alt.X('Date:O', title='Date', sort=alt.SortArray(list(date_df['Date'].unique())))  # Changed to ordinal and added sort
-    tooltip_fields = [selected_category_line, alt.Tooltip('Date:N', title='Date'), 'Contribution']
+    amount_by_category_line = filtered_df.groupby([selected_category_line, 'Timestamp', 'Date'])['Contribution'].sum().reset_index()
+    x_encoding = alt.X('Timestamp:T', title='Date')
+    tooltip_fields = [selected_category_line, 'Date:N', 'Contribution']
 else:
-    year_df=filtered_df.copy()
-    amount_by_category_line = year_df.groupby([selected_category_line, 'Year'])['Contribution'].sum().reset_index()
+    amount_by_category_line = filtered_df.groupby([selected_category_line, 'Year'])['Contribution'].sum().reset_index()
     x_encoding = alt.X('Year:O', title='Year')
     tooltip_fields = [selected_category_line, 'Year', 'Contribution']
     
