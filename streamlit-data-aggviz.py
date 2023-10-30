@@ -10,7 +10,7 @@ st.title("Sacramento Campaign Finance 2014 - 2023")
 
 folder_path = 'data/'
 
-st.cache_data
+@st.cache_data
 def read_jsons_from_folder(folder_path):
     all_files = [f for f in os.listdir(folder_path) if f.endswith('.json')]
     df_list = []
