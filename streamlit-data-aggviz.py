@@ -46,12 +46,12 @@ def read_jsons_from_folder(folder_path):
         'datestring':'Date',
         'contributorLastName':'Contributor Last Name',
         'contributorFirstName':'Contributor First Name',
-        'committeeType':'Committee Type,
+        'committeeType':'Committee Type',
         'contributorType': 'Contributor Type',
         'contributorCity':'Contributor City',
         'contributorZip':'Contributor Zip',
         'contributorOccupation':'Contributor Occupation',
-        'contributorEmployer':'Contributor Employer'',
+        'contributorEmployer':'Contributor Employer',
         'transactionId':'Transaction ID #'
     }
 
