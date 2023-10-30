@@ -88,7 +88,7 @@ def get_filtered_values(column, active_filters):
             df = df[df[key] == (int(value) if key == 'year' else value)]
     return ['All'] + sorted(list(map(str, df[column].unique())))
 
-st.sidebar.write("Use the filters below to narrow down the dataset and explore specific contributions.")
+st.sidebar.write("Use the filters below to narrow down the dataset:")
 
 for column in filters.keys():
     filters[column] = st.sidebar.selectbox(f"Select {column}", options=get_filtered_values(column, filters))
@@ -103,7 +103,8 @@ for key, value in filters.items():
         filtered_df = filtered_df[filtered_df[key] == value]
 
 aggregate_total = filtered_df['Contribution'].sum()
-st.write(f"Aggregate Total Amount: ${aggregate_total:,.2f}")
+
+st.markdown(f"### Aggregate Total with Applied Filters: ${aggregate_total:,.2f}")
 
 
 # Bar Chart: Amount by user-selected category
@@ -128,6 +129,8 @@ categories = [
 MAX_PLOT_VALUES = 50
 
 # Bar Chart: Amount by user-selected category
+st.markdown("## Bar Chart Visualization")
+st.write("The bar chart below represents the total contributions based on the selected category. By default, if there are more than 50 unique values in a category, only the top 50 based on the contribution amounts are displayed.")
 selected_category_bar = st.selectbox("Select a category for the bar chart", categories)
 amount_by_category_bar = filtered_df.groupby(selected_category_bar)['Contribution'].sum().reset_index().sort_values(by='Contribution', ascending=False)
 amount_by_category_bar['Contribution Amount'] = amount_by_category_bar['Contribution'].apply(lambda x: f"${x:,.2f}")
@@ -141,12 +144,13 @@ bar_chart = alt.Chart(amount_by_category_bar).mark_bar().encode(
     x=alt.X('Contribution:Q', title='Contribution'),
     tooltip=[selected_category_bar, 'Contribution Amount']
 )
-st.markdown("## Bar Chart Visualization")
-st.write("The bar chart below represents the total contributions based on the selected category. By default, if there are more than 50 unique values in a category, only the top 50 based on the contribution amounts are displayed.")
+
 st.altair_chart(bar_chart, use_container_width=True)
 
 
 # Line Chart: Aggregated amount by user-selected category
+st.markdown("## Line Chart Visualization")
+st.write("The line chart below visualizes the aggregated amount of contributions over time (by date or year) for a selected category. Like the bar chart, if there are more than 50 unique values in a category, only the top 50 based on the contribution amounts are displayed in the graph.")
 selected_category_line = st.selectbox("Select a category for the line chart", categories)
 
 aggregation_choice = st.radio("Choose aggregation for line chart:", ['Date', 'Year'])
@@ -177,8 +181,7 @@ base_chart = alt.Chart(amount_by_category_line).encode(
 )
 
 line_chart = (base_chart.mark_line() + base_chart.mark_point(size=100, filled=True, opacity=.5)).interactive()
-st.markdown("## Line Chart Visualization")
-st.write("The line chart below visualizes the aggregated amount of contributions over time (by date or year) for a selected category. Like the bar chart, if there are more than 50 unique values in a category, only the top 50 based on the contribution amounts are displayed in the graph.")
+
 st.altair_chart(line_chart, use_container_width=True)
 
 st.markdown("## Filtered Data")
