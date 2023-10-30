@@ -1,4 +1,4 @@
-#GO TO POWERSHELL AND RUN COMMAND:  streamlit run SacCampaignFinance/streamlit-data-aggviz.py
+#GO TO POWERSHELL AND RUN COMMAND:  streamlit run streamlit-data-aggviz.py
 import streamlit as st
 import os
 import pandas as pd
@@ -125,13 +125,16 @@ categories = [
     'Contributor Employer',
     'Transaction ID #'
 ]
-# Define a maximum limit for unique values to plot
-MAX_PLOT_VALUES = 50
+
 
 # Bar Chart: Amount by user-selected category
 st.markdown("## Bar Chart Visualization")
-st.write("The bar chart visualizes the aggregated amounts of the selected category within the filtered dataset. Only the top 50 unique values of a selected category are visualized. Hover your mouse over a bar to view its information")
+st.write("The bar chart visualizes the aggregated amounts of the selected category within the filtered dataset. Hover your mouse over a bar to view its information")
+
 selected_category_bar = st.selectbox("Select a category for the bar chart", categories)
+
+MAX_PLOT_VALUES = st.number_input("Enter a maximum number of unique category values to display in the bar chart", min_value=1, max_value=1000, value=15, key='bar_chart_categories_input')
+
 amount_by_category_bar = filtered_df.groupby(selected_category_bar)['Contribution'].sum().reset_index().sort_values(by='Contribution', ascending=False)
 amount_by_category_bar['Contribution Amount'] = amount_by_category_bar['Contribution'].apply(lambda x: f"${x:,.2f}")
 
@@ -150,10 +153,11 @@ st.altair_chart(bar_chart, use_container_width=True)
 
 # Line Chart: Aggregated amount by user-selected category
 st.markdown("## Line Chart Visualization")
-st.write("The line chart visualizes the aggregated amount of contributions over time (by date or year) for a selected category. Like the bar chart, only the top 50 unique values of a selected category are visualized. Note that some points may be hidden behind other points with the same contribution amount (you may verify using the bar chart). Hover your mouse over a data point to view its information")
+st.write("The line chart visualizes the aggregated amount of contributions over time (by date or year) for a selected category. Note that some points may be hidden behind other points with the same contribution amount (you may verify using the bar chart). Hover your mouse over a data point to view its information and scroll with your mouse wheel to zoom in.")
 selected_category_line = st.selectbox("Select a category for the line chart", categories)
 
-aggregation_choice = st.radio("Choose aggregation for line chart:", ['Year', 'Date'])
+
+aggregation_choice = st.radio("Choose an x-axis aggregation for line chart:", ['Year', 'Date'])
 if aggregation_choice == 'Date':
     amount_by_category_line = filtered_df.groupby([selected_category_line, 'Timestamp', 'Date',])['Contribution'].sum().reset_index()
     amount_by_category_line['Contribution Amount'] = amount_by_category_line['Contribution'].apply(lambda x: f"${x:,.2f}")
@@ -165,22 +169,41 @@ else:
     x_encoding = alt.X('Year:O', title='Year')
     tooltip_fields = [selected_category_line, 'Year', 'Contribution Amount']
     
-    
-# If number of unique values is greater than MAX_PLOT_VALUES, show only top N
-top_categories = amount_by_category_line.groupby(selected_category_line)['Contribution'].sum().nlargest(MAX_PLOT_VALUES).index
-amount_by_category_line = amount_by_category_line[amount_by_category_line[selected_category_line].isin(top_categories)]
+MAX_PLOT_VALUES2 = st.number_input("Enter a maximum number of unique category values to display in the line chart", min_value=1, max_value=1000, value=15, key='line_chart_categories_input')
+
+# If the number of unique categories is greater than MAX_PLOT_VALUES2, limit to top categories based on total contribution
+if len(amount_by_category_line[selected_category_line].unique()) > MAX_PLOT_VALUES2:
+    top_categories = amount_by_category_line.groupby(selected_category_line)['Contribution'].sum().nlargest(MAX_PLOT_VALUES2).index
+    amount_by_category_line = amount_by_category_line[amount_by_category_line[selected_category_line].isin(top_categories)]
+
 amount_by_category_line['Contribution Amount'] = amount_by_category_line['Contribution'].apply(lambda x: f"${x:,.2f}")
 
+
+# Create a selection for highlighting
+highlight_line = alt.selection(type='single', on='mouseover', fields=[selected_category_line], nearest=True)
+
+# Base chart for points and lines
 base_chart = alt.Chart(amount_by_category_line).encode(
     x=x_encoding,
     y=alt.Y('Contribution:Q', title='Contribution'),
-    color=alt.Color(f"{selected_category_line}:N", 
-                    legend=alt.Legend(title=selected_category_line),
+    color=alt.Color(f"{selected_category_line}:N",
+                    legend=None,
                     sort=alt.EncodingSortField(field="Contribution", op="sum", order="descending")),
     tooltip=tooltip_fields
 )
 
-line_chart = (base_chart.mark_line() + base_chart.mark_point(size=100, filled=True, opacity=.5)).interactive()
+# Mark points on the line
+points_chart = base_chart.mark_point(size=100, filled=True, opacity=.7).encode(
+    opacity=alt.condition(highlight_line, alt.value(1), alt.value(.7))
+).add_selection(highlight_line)
+
+# Draw the lines and modify thickness based on the selection
+lines_chart = base_chart.mark_line().encode(
+    size=alt.condition(highlight_line, alt.value(3), alt.value(1))
+)
+
+# Combine the points and lines charts
+line_chart = (lines_chart + points_chart).interactive()
 
 st.altair_chart(line_chart, use_container_width=True)
 
