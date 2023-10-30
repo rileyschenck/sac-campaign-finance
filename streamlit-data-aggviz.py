@@ -46,12 +46,12 @@ def read_jsons_from_folder(folder_path):
         'datestring':'Date',
         'contributorLastName':'Contributor Last Name',
         'contributorFirstName':'Contributor First Name',
+        'committeeType':'Committee Type,
         'contributorType': 'Contributor Type',
         'contributorCity':'Contributor City',
         'contributorZip':'Contributor Zip',
         'contributorOccupation':'Contributor Occupation',
-        'contributorEmployer':'Contributor Employer',
-        'committeeType':'Committee Type',
+        'contributorEmployer':'Contributor Employer'',
         'transactionId':'Transaction ID #'
     }
 
@@ -67,17 +67,17 @@ filters = {
     'Entity': 'All',
     'Campaign/PAC': 'All',
     'Campaigns/PACs-all years': 'All',
-    'Contribution': 'All',
-    'Year': 'All',
-    'Date': 'All',
     'Contributor Last Name': 'All',
     'Contributor First Name': 'All',
     'Contributor Type': 'All',
+    'Committee Type': 'All',
+    'Year': 'All',
+    'Date': 'All',
     'Contributor City': 'All',
     'Contributor Zip': 'All',
+    'Contribution': 'All',
     'Contributor Occupation': 'All',
     'Contributor Employer': 'All',
-    'Committee Type': 'All',
     'Transaction ID #': 'All'
 }
 
@@ -88,7 +88,7 @@ def get_filtered_values(column, active_filters):
             df = df[df[key] == (int(value) if key == 'year' else value)]
     return ['All'] + sorted(list(map(str, df[column].unique())))
 
-st.sidebar.write("Use the filters below to narrow down the dataset:")
+st.sidebar.write("Use the search bars below to filter the dataset. You may type directly into each bar:")
 
 for column in filters.keys():
     filters[column] = st.sidebar.selectbox(f"Select {column}", options=get_filtered_values(column, filters))
