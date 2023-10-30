@@ -7,7 +7,7 @@ import altair as alt
 st.set_page_config(layout="wide")
 
 st.title("Sacramento Campaign Finance 2014 - 2023")
-st.write("This application visualizes the campaign finance data of Sacramento from 2014 to 2023. You can filter the data using various parameters and view the aggregate statistics.")
+st.write("This application analyzes Sacramento campaign finance data from 2014 to 2023. You can filter the data using various parameters on the left, explore and visualize the aggregate data in the bar and line charts below, and download the filtered dataset at the bottom of the page.")
 
 folder_path = 'data/'
 
@@ -130,7 +130,7 @@ MAX_PLOT_VALUES = 50
 
 # Bar Chart: Amount by user-selected category
 st.markdown("## Bar Chart Visualization")
-st.write("The bar chart below represents the total contributions based on the selected category. By default, if there are more than 50 unique values in a category, only the top 50 based on the contribution amounts are displayed.")
+st.write("The bar chart visualizes the aggregated amounts of the selected category within the filtered dataset. Only the top 50 unique values of a selected category are visualized.")
 selected_category_bar = st.selectbox("Select a category for the bar chart", categories)
 amount_by_category_bar = filtered_df.groupby(selected_category_bar)['Contribution'].sum().reset_index().sort_values(by='Contribution', ascending=False)
 amount_by_category_bar['Contribution Amount'] = amount_by_category_bar['Contribution'].apply(lambda x: f"${x:,.2f}")
@@ -150,7 +150,7 @@ st.altair_chart(bar_chart, use_container_width=True)
 
 # Line Chart: Aggregated amount by user-selected category
 st.markdown("## Line Chart Visualization")
-st.write("The line chart below visualizes the aggregated amount of contributions over time (by date or year) for a selected category. Like the bar chart, if there are more than 50 unique values in a category, only the top 50 based on the contribution amounts are displayed in the graph.")
+st.write("The line chart visualizes the aggregated amount of contributions over time (by date or year) for a selected category. Like the bar chart, only the top 50 unique values of a selected category are visualized. Note that some points may be hidden behind other points with the same contribution amount (you may verify using the bar chart).")
 selected_category_line = st.selectbox("Select a category for the line chart", categories)
 
 aggregation_choice = st.radio("Choose aggregation for line chart:", ['Date', 'Year'])
@@ -185,5 +185,5 @@ line_chart = (base_chart.mark_line() + base_chart.mark_point(size=100, filled=Tr
 st.altair_chart(line_chart, use_container_width=True)
 
 st.markdown("## Filtered Data")
-st.write("The table below shows the data after applying the selected filters. You can further inspect specific rows to understand the details of each contribution.")
+st.write("The table below shows the original raw data after applying the selected filters. You can inspect specific rows to understand the details of each contribution, and the filtered dataset can be downloaded as a CSV file.")
 st.write(filtered_df)
