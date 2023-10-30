@@ -8,7 +8,7 @@ st.set_page_config(layout="wide")
 
 st.title("Sacramento Campaign Finance 2014 - 2023")
 
-folder_path = 'SacCampaignFinance/data/'
+folder_path = 'data/'
 
 def read_jsons_from_folder(folder_path):
     all_files = [f for f in os.listdir(folder_path) if f.endswith('.json')]
