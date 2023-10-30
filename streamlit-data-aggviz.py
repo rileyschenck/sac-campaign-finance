@@ -153,7 +153,7 @@ st.markdown("## Line Chart Visualization")
 st.write("The line chart visualizes the aggregated amount of contributions over time (by date or year) for a selected category. Like the bar chart, only the top 50 unique values of a selected category are visualized. Note that some points may be hidden behind other points with the same contribution amount (you may verify using the bar chart). Hover your mouse over a data point to view its information")
 selected_category_line = st.selectbox("Select a category for the line chart", categories)
 
-aggregation_choice = st.radio("Choose aggregation for line chart:", ['Date', 'Year'])
+aggregation_choice = st.radio("Choose aggregation for line chart:", ['Year', 'Date'])
 if aggregation_choice == 'Date':
     amount_by_category_line = filtered_df.groupby([selected_category_line, 'Timestamp', 'Date',])['Contribution'].sum().reset_index()
     amount_by_category_line['Contribution Amount'] = amount_by_category_line['Contribution'].apply(lambda x: f"${x:,.2f}")
