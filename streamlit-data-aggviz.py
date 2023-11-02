@@ -62,12 +62,92 @@ def read_jsons_from_folder(folder_path):
 
 original_df = read_jsons_from_folder(folder_path)
 
+# Define the function to get filtered values
+def get_filtered_values(column, active_filters):
+    df = original_df.copy()
+    for key, value in active_filters.items():
+        if key != column and value != 'All':
+            df = df[df[key] == (int(value) if key == 'year' else value)]
+    return ['All'] + sorted(list(df[column].astype(str).unique()))
+st.sidebar.write("Use the search bars below to filter the dataset. You may type directly into each bar, and add additional filtering terms for the Campaign/PAC column, Campaign/PACs-all years column (combines campaigns for the same candidate across multiple elections by removing any years at the end of campaign names), and Contributor Last Name column.")
 
+# Initialize the session state for campaign_pac_filters if it doesn't exist
+if 'campaign_pac_filters' not in st.session_state:
+    st.session_state.campaign_pac_filters = ['All']
+if 'campaign_pac_button_clicked_count' not in st.session_state:
+    st.session_state.campaign_pac_button_clicked_count = 0
+
+# Button to add a new filter for Campaign/PAC
+if st.sidebar.button("Add another Campaign/PAC filter"):
+    st.session_state.campaign_pac_button_clicked_count += 1
+
+# Ensure 'campaign_pac_filters' length matches 'campaign_pac_button_clicked_count'
+while len(st.session_state.campaign_pac_filters) <= st.session_state.campaign_pac_button_clicked_count:
+    st.session_state.campaign_pac_filters.append('All')
+
+# Display all existing filters for Campaign/PAC
+for i in range(len(st.session_state.campaign_pac_filters)):
+    current_filter = st.session_state.campaign_pac_filters[i]
+    st.session_state.campaign_pac_filters[i] = st.sidebar.selectbox(
+        f"Select Campaign/PAC {i + 1}",
+        options=get_filtered_values('Campaign/PAC', {}),
+        index=0,
+        key=f'campaign_pac_filter_{i}'
+    )
+    
+    
+# Initialize the session state for campaigns_all_years_filters if it doesn't exist
+if 'campaigns_all_years_filters' not in st.session_state:
+    st.session_state.campaigns_all_years_filters = ['All']
+if 'campaigns_all_years_button_clicked_count' not in st.session_state:
+    st.session_state.campaigns_all_years_button_clicked_count = 0
+
+# Button to add a new filter for Campaigns/PACs-all years
+if st.sidebar.button("Add another Campaigns/PACs-all years filter"):
+    st.session_state.campaigns_all_years_button_clicked_count += 1
+
+# Ensure 'campaigns_all_years_filters' length matches 'campaigns_all_years_button_clicked_count'
+while len(st.session_state.campaigns_all_years_filters) <= st.session_state.campaigns_all_years_button_clicked_count:
+    st.session_state.campaigns_all_years_filters.append('All')
+
+# Display all existing filters for Campaigns/PACs-all years
+for i in range(len(st.session_state.campaigns_all_years_filters)):
+    current_filter = st.session_state.campaigns_all_years_filters[i]
+    st.session_state.campaigns_all_years_filters[i] = st.sidebar.selectbox(
+        f"Select Campaigns/PACs-all years {i + 1}",
+        options=get_filtered_values('Campaigns/PACs-all years', {}),
+        index=0,
+        key=f'campaigns_all_years_filter_{i}'
+    )
+    
+# Initialize the session state for contributor_last_name_filters if it doesn't exist
+if 'contributor_last_name_filters' not in st.session_state:
+    st.session_state.contributor_last_name_filters = ['All']
+if 'button_clicked_count' not in st.session_state:
+    st.session_state.button_clicked_count = 0
+
+# Button to add a new filter for Contributor Last Name
+if st.sidebar.button("Add another Contributor Last Name filter"):
+    st.session_state.button_clicked_count += 1
+
+# Ensure 'contributor_last_name_filters' length matches 'button_clicked_count'
+while len(st.session_state.contributor_last_name_filters) <= st.session_state.button_clicked_count:
+    st.session_state.contributor_last_name_filters.append('All')
+
+# Display all existing filters for Contributor Last Name
+for i in range(len(st.session_state.contributor_last_name_filters)):
+    current_filter = st.session_state.contributor_last_name_filters[i]
+    st.session_state.contributor_last_name_filters[i] = st.sidebar.selectbox(
+        f"Select Contributor Last Name {i + 1}",
+        options=get_filtered_values('Contributor Last Name', {}),
+        index=0,
+        key=f'contributor_last_name_filter_{i}'
+    )
+    
+
+# Main filter logic for other fields
 filters = {
     'Entity': 'All',
-    'Campaign/PAC': 'All',
-    'Campaigns/PACs-all years': 'All',
-    'Contributor Last Name': 'All',
     'Contributor First Name': 'All',
     'Contributor Type': 'All',
     'Committee Type': 'All',
@@ -81,31 +161,42 @@ filters = {
     'Transaction ID #': 'All'
 }
 
-def get_filtered_values(column, active_filters):
-    df = original_df.copy()
-    for key, value in active_filters.items():
-        if key != column and value != 'All':
-            df = df[df[key] == (int(value) if key == 'year' else value)]
-    return ['All'] + sorted(list(map(str, df[column].unique())))
+st.sidebar.write("Additional search bars to filter the dataset on the other columns. Only 1 filter may be applied for these columns:")
 
-st.sidebar.write("Use the search bars below to filter the dataset. You may type directly into each bar:")
-
-for column in filters.keys():
-    filters[column] = st.sidebar.selectbox(f"Select {column}", options=get_filtered_values(column, filters))
-
-
+# Create sidebar filters for fields other than Contributor Last Name
+for column, value in filters.items():
+    chosen_value = st.sidebar.selectbox(f"Select {column}", options=get_filtered_values(column, filters), key=column)
+    filters[column] = chosen_value  # Store the chosen value back in the filters dictionary
+    
+# Filter the DataFrame based on selected filter values
 filtered_df = original_df.copy()
 
-for key, value in filters.items():
-    if value != 'All':
-        if key == 'Contribution':
-            value = int(value)
-        filtered_df = filtered_df[filtered_df[key] == value]
+# Apply dynamic filters for Contributor Last Name to the DataFrame
+last_name_filters = [name for name in st.session_state.contributor_last_name_filters if name != 'All']
+if last_name_filters:
+    filtered_df = filtered_df[filtered_df['Contributor Last Name'].isin(last_name_filters)]
 
+# Apply dynamic filters for Campaign/PAC to the DataFrame
+campaign_pac_filters = [name for name in st.session_state.campaign_pac_filters if name != 'All']
+if campaign_pac_filters:
+    filtered_df = filtered_df[filtered_df['Campaign/PAC'].isin(campaign_pac_filters)]
+
+# Apply dynamic filters for Campaigns/PACs-all years to the DataFrame
+campaigns_all_years_filters = [name for name in st.session_state.campaigns_all_years_filters if name != 'All']
+if campaigns_all_years_filters:
+    filtered_df = filtered_df[filtered_df['Campaigns/PACs-all years'].isin(campaigns_all_years_filters)]
+    
+# Apply other selected filters to the DataFrame
+for column, selected_option in filters.items():
+    if selected_option != 'All':
+        if column == 'Contribution':
+            filtered_df = filtered_df[filtered_df[column] == int(selected_option)]
+        else:
+            filtered_df = filtered_df[filtered_df[column] == selected_option]
+
+# Calculate aggregate total
 aggregate_total = filtered_df['Contribution'].sum()
-
 st.markdown(f"### Aggregate Total with Applied Filters: ${aggregate_total:,.2f}")
-
 
 # Bar Chart: Amount by user-selected category
 categories = [
